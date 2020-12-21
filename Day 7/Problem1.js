@@ -10,6 +10,9 @@ function removeBag(color){
 }
 
 function extractNumber(rule){
+    if(rule==="no other bags"){
+        return {count:0,color:"no other bags"};
+    }
     rule = removeBag(rule);
     var nospace=rule.split(" ");
     var r = {}
@@ -22,24 +25,24 @@ function extractNumber(rule){
     return r;
 }
 
-function checkBag(i_outer,inner,rules,winner){
-    //console.log("checking bag "+outer);
-    var outer = i_outer;
+function checkBag(outer,goal,rules,winner,tabs){
+    //var outer = i_outer;
     if(winner.didWeWin){
         //console.log("Winning Bag!!!")
         return;
     } 
     for(i in outer){
-        if(outer[i] === "no other bags")return;
+        if(outer[i].color === "no other bags") return;
 
-        var color = extractNumber(outer[i]);
-        if(inner === color.color){
+        //var color = extractNumber(outer[i]);
+        else if(goal === outer[i].color){
             winner.didWeWin=true;
             //console.log("Winner!!!!");
             return;
         }
         else{
-            return checkBag(rules[color.color], inner, rules, winner);
+            //console.log(tabs+"checking bag "+outer[i].color);
+            checkBag(rules[outer[i].color], goal, rules, winner, tabs+"  ");
         }
     }
     
@@ -48,31 +51,34 @@ var fs = require('fs');
 var array = fs.readFileSync('my-file.txt').toString().split(".\n");
 //console.log(array);
 
-var winningBag = "shiny gold";
+const winningBag = "shiny gold";
 
 var count = 0;
 var rules = [];
 
 //Load in rules
 for(i in array) {
-    var line = array[i].split(" contain ");
-    var outer = removeBag(line[0]);
+    var line = array[i].split(" bags contain ");
+    var outer = line[0];
     var inners = line[1].split(", ");
+    for(j in inners){
+        inners[j] = extractNumber(inners[j]);
+    }
     rules[outer]=inners;
 }
 
 console.log(rules.length);
 //Check if you can have other bags
-for(i in rules){
-    //console.log("i:"+i)
-    var winner = { didWeWin:false };
+for(const i in rules){
+    console.log("checking "+i);
+    var winner = { didWeWin:false};
     var tempbag = rules[i];
-    var tempwinner = i;
-    checkBag(tempbag,winningBag,rules,winner);
+    //var tempwinner = i;
+    checkBag(tempbag,winningBag,rules,winner,"");
     
-    if(winner.didWeWin && tempwinner!==winningBag){ 
+    if(winner.didWeWin){ 
         count++;
-        console.log("winner " + tempwinner);
+        console.log("🎄winner🎄 " + i);
     }
 }
 
